@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPipe Hand Tracking - Index Finger Tip</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #video {
+            width: 640px;
+            height: 480px;
+            background: #000;
+            border-radius: 15px;
+            transform: scaleX(-1); /* 좌우 반전 */
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 640px;
+            height: 480px;
+            pointer-events: none;
+            transform: scaleX(-1); /* 좌우 반전 */
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .status {
+            font-size: 18px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .landmark-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .landmark-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .landmark-item h3 {
+            margin: 0 0 10px 0;
+            color: #ffd700;
+        }
+
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .instructions h2 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .instructions li {
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            #video, #canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .landmark-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤚 MediaPipe Hand Tracking</h1>
+        <p>Index Finger Tip Detection & Landmark Visualization</p>
+        
+        <div class="video-container">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">카메라 시작</button>
+            <button id="stopBtn" disabled>카메라 중지</button>
+        </div>
+
+        <div class="info-panel">
+            <div class="status" id="status">카메라를 시작해주세요</div>
+            
+            <div class="landmark-info" id="landmarkInfo">
+                <div class="landmark-item">
+                    <h3>Index Finger Tip</h3>
+                    <div class="coordinates" id="indexTip">X: -, Y: -, Z: -</div>
+                </div>
+                <div class="landmark-item">
+                    <h3>Index Finger PIP</h3>
+                    <div class="coordinates" id="indexPip">X: -, Y: -, Z: -</div>
+                </div>
+                <div class="landmark-item">
+                    <h3>Index Finger MCP</h3>
+                    <div class="coordinates" id="indexMcp">X: -, Y: -, Z: -</div>
+                </div>
+                <div class="landmark-item">
+                    <h3>Hand Detection</h3>
+                    <div class="coordinates" id="handCount">손 개수: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h2>📋 사용 방법</h2>
+            <ul>
+                <li><strong>카메라 시작</strong> 버튼을 클릭하여 웹캠을 활성화합니다</li>
+                <li>카메라 앞에 손을 보여주세요</li>
+                <li>검지 끝부분이 <strong>빨간색 점</strong>으로 표시됩니다</li>
+                <li>다른 손가락 관절들도 <strong>파란색 점</strong>으로 표시됩니다</li>
+                <li>실시간으로 좌표 정보가 업데이트됩니다</li>
+                <li>여러 손을 동시에 인식할 수 있습니다</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        class HandTracker {
+            constructor() {
+                this.video = document.getElementById('video');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.status = document.getElementById('status');
+                
+                this.hands = null;
+                this.camera = null;
+                this.isRunning = false;
+                
+                this.initializeMediaPipe();
+                this.setupEventListeners();
+            }
+
+            async initializeMediaPipe() {
+                this.hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+
+                this.hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                this.hands.onResults((results) => {
+                    this.onResults(results);
+                });
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+            }
+
+            async startCamera() {
+                try {
+                    this.status.textContent = '카메라를 초기화하는 중...';
+                    this.startBtn.disabled = true;
+
+                    this.camera = new Camera(this.video, {
+                        onFrame: async () => {
+                            if (this.hands) {
+                                await this.hands.send({ image: this.video });
+                            }
+                        },
+                        width: 640,
+                        height: 480
+                    });
+
+                    await this.camera.start();
+                    this.isRunning = true;
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                    this.status.textContent = '카메라가 활성화되었습니다. 손을 보여주세요!';
+                    
+                } catch (error) {
+                    console.error('카메라 시작 오류:', error);
+                    this.status.textContent = '카메라 시작에 실패했습니다. 권한을 확인해주세요.';
+                    this.startBtn.disabled = false;
+                }
+            }
+
+            stopCamera() {
+                if (this.camera) {
+                    this.camera.stop();
+                    this.camera = null;
+                }
+                
+                this.isRunning = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.status.textContent = '카메라가 중지되었습니다';
+                
+                // 캔버스 클리어
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.updateLandmarkInfo([], 0);
+            }
+
+            onResults(results) {
+                // 캔버스 크기 설정
+                this.canvas.width = this.video.videoWidth;
+                this.canvas.height = this.video.videoHeight;
+                
+                // 캔버스 클리어
+                this.ctx.save();
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // 손이 감지된 경우
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    this.drawHands(results.multiHandLandmarks, results.multiHandedness);
+                    this.updateLandmarkInfo(results.multiHandLandmarks, results.multiHandLandmarks.length);
+                } else {
+                    this.updateLandmarkInfo([], 0);
+                }
+                
+                this.ctx.restore();
+            }
+
+            drawHands(landmarks, handedness) {
+                landmarks.forEach((landmark, handIndex) => {
+                    // 손가락 연결선 그리기
+                    this.drawConnections(landmark);
+                    
+                    // 랜드마크 점 그리기
+                    landmark.forEach((point, index) => {
+                        const x = point.x * this.canvas.width;
+                        const y = point.y * this.canvas.height;
+                        
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        
+                        // Index finger tip (8번 인덱스)을 빨간색으로 강조
+                        if (index === 8) {
+                            this.ctx.fillStyle = '#ff0000';
+                            this.ctx.fill();
+                            this.ctx.strokeStyle = '#ffffff';
+                            this.ctx.lineWidth = 2;
+                            this.ctx.stroke();
+                        } else {
+                            this.ctx.fillStyle = '#0066ff';
+                            this.ctx.fill();
+                        }
+                    });
+                    
+                    // 손 정보 표시
+                    if (handedness && handedness[handIndex]) {
+                        const handLabel = handedness[handIndex].label;
+                        const confidence = handedness[handIndex].score;
+                        const wrist = landmark[0];
+                        const x = wrist.x * this.canvas.width;
+                        const y = wrist.y * this.canvas.height - 20;
+                        
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '16px Arial';
+                        this.ctx.fillText(`${handLabel} (${(confidence * 100).toFixed(1)}%)`, x, y);
+                    }
+                });
+            }
+
+            drawConnections(landmark) {
+                // 손가락 연결선 정의
+                const connections = [
+                    [0, 1], [1, 2], [2, 3], [3, 4], // 엄지
+                    [0, 5], [5, 6], [6, 7], [7, 8], // 검지
+                    [0, 9], [9, 10], [10, 11], [11, 12], // 중지
+                    [0, 13], [13, 14], [14, 15], [15, 16], // 약지
+                    [0, 17], [17, 18], [18, 19], [19, 20], // 소지
+                    [5, 9], [9, 13], [13, 17] // 손바닥 연결
+                ];
+
+                this.ctx.strokeStyle = '#00ff00';
+                this.ctx.lineWidth = 2;
+
+                connections.forEach(([start, end]) => {
+                    const startPoint = landmark[start];
+                    const endPoint = landmark[end];
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startPoint.x * this.canvas.width, startPoint.y * this.canvas.height);
+                    this.ctx.lineTo(endPoint.x * this.canvas.width, endPoint.y * this.canvas.height);
+                    this.ctx.stroke();
+                });
+            }
+
+            updateLandmarkInfo(landmarks, handCount) {
+                document.getElementById('handCount').textContent = `손 개수: ${handCount}`;
+                
+                if (landmarks.length > 0) {
+                    // 첫 번째 손의 정보만 표시
+                    const firstHand = landmarks[0];
+                    
+                    // Index finger tip (8번 인덱스)
+                    const indexTip = firstHand[8];
+                    document.getElementById('indexTip').textContent = 
+                        `X: ${indexTip.x.toFixed(3)}, Y: ${indexTip.y.toFixed(3)}, Z: ${indexTip.z.toFixed(3)}`;
+                    
+                    // Index finger PIP (6번 인덱스)
+                    const indexPip = firstHand[6];
+                    document.getElementById('indexPip').textContent = 
+                        `X: ${indexPip.x.toFixed(3)}, Y: ${indexPip.y.toFixed(3)}, Z: ${indexPip.z.toFixed(3)}`;
+                    
+                    // Index finger MCP (5번 인덱스)
+                    const indexMcp = firstHand[5];
+                    document.getElementById('indexMcp').textContent = 
+                        `X: ${indexMcp.x.toFixed(3)}, Y: ${indexMcp.y.toFixed(3)}, Z: ${indexMcp.z.toFixed(3)}`;
+                } else {
+                    document.getElementById('indexTip').textContent = 'X: -, Y: -, Z: -';
+                    document.getElementById('indexPip').textContent = 'X: -, Y: -, Z: -';
+                    document.getElementById('indexMcp').textContent = 'X: -, Y: -, Z: -';
+                }
+            }
+        }
+
+        // 페이지 로드 시 HandTracker 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            new HandTracker();
+        });
+    </script>
+</body>
+</html>
