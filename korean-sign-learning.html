@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 수화 학습 - 손가락으로 이름 배우기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .left-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .right-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 3px solid #e0e0e0;
+        }
+
+        #video {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            background: #000;
+            transform: scaleX(-1);
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            transform: scaleX(-1);
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            background: #bdc3c7;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .decomposed-letters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .letter-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            min-width: 60px;
+            transition: all 0.3s ease;
+        }
+
+        .letter-card.current {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .letter-card.completed {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+
+        .letter-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .letter-card p {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .learning-section {
+            margin-top: 30px;
+        }
+
+        .current-letter {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .current-letter h2 {
+            font-size: 3em;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .current-letter p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .sign-guide {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .sign-guide h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .sign-guide ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sign-guide li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sign-guide li:last-child {
+            border-bottom: none;
+        }
+
+        .progress-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.3s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .feedback-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .feedback.practice {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .gesture-status {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .achievement-section {
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+
+        .achievement-section h4 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            background: #ffd700;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .badge.locked {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .decomposed-letters {
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .sign-example {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .sign-example h5 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .sign-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: #2c3e50;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sign-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .sign-image .emoji {
+            font-size: 4em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤚 한글 수화 학습</h1>
+            <p>손가락으로 나의 이름을 배워보세요!</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 왼쪽 패널: 카메라 및 실시간 인식 -->
+            <div class="left-panel">
+                <h3>📹 실시간 수화 인식</h3>
+                
+                <div class="video-container">
+                    <video id="video" autoplay muted playsinline></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button id="startBtn">카메라 시작</button>
+                    <button id="stopBtn" disabled>카메라 중지</button>
+                    <button id="practiceBtn" disabled>연습 모드</button>
+                </div>
+
+                <div class="feedback-section">
+                    <div id="feedback" class="feedback hidden"></div>
+                    <div id="gestureStatus" class="gesture-status hidden">
+                        <p>손을 카메라 앞에 올려주세요</p>
+                    </div>
+                </div>
+
+                <div class="current-letter">
+                    <h2 id="currentLetterDisplay">-</h2>
+                    <p id="currentLetterName">학습할 자모음을 선택하세요</p>
+                </div>
+            </div>
+
+            <!-- 오른쪽 패널: 학습 관리 -->
+            <div class="right-panel">
+                <div class="input-section">
+                    <h3>✏️ 이름 입력</h3>
+                    <input type="text" id="nameInput" class="name-input" placeholder="예: 김철수" maxlength="10">
+                    <button id="analyzeBtn" disabled>이름 분석하기</button>
+                </div>
+
+                <div id="decomposedSection" class="hidden">
+                    <h3>🔤 자모음 분해</h3>
+                    <div id="decomposedLetters" class="decomposed-letters"></div>
+                </div>
+
+                <div class="learning-section">
+                    <h3>📚 학습 진행</h3>
+                    
+                    <div class="progress-section">
+                        <h4>전체 진행률</h4>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText">0% 완료</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>학습한 자모음</h4>
+                            <div class="number" id="learnedCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>정확도</h4>
+                            <div class="number" id="accuracy">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>연습 횟수</h4>
+                            <div class="number" id="practiceCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>점수</h4>
+                            <div class="number" id="score">0</div>
+                        </div>
+                    </div>
+
+                <div class="sign-guide">
+                    <h4>🎯 현재 자모음 수화 방법</h4>
+                    <div id="signInstructions">
+                        이름을 입력하고 분석하기 버튼을 눌러주세요.
+                    </div>
+                    <div id="signExample" class="sign-example hidden">
+                        <h5>수화 예시</h5>
+                        <div id="signImage" class="sign-image"></div>
+                    </div>
+                </div>
+
+                    <div class="achievement-section">
+                        <h4>🏆 성취 배지</h4>
+                        <div id="badges" class="badges">
+                            <div class="badge locked">첫 수화</div>
+                            <div class="badge locked">자모음 마스터</div>
+                            <div class="badge locked">이름 완성</div>
+                            <div class="badge locked">수화 전문가</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        class KoreanSignLanguageLearner {
+            constructor() {
+                this.video = document.getElementById('video');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.practiceBtn = document.getElementById('practiceBtn');
+                this.nameInput = document.getElementById('nameInput');
+                this.analyzeBtn = document.getElementById('analyzeBtn');
+                
+                this.hands = null;
+                this.camera = null;
+                this.isRunning = false;
+                this.isPracticing = false;
+                
+                // 학습 데이터
+                this.userName = '';
+                this.decomposedLetters = [];
+                this.currentLetterIndex = 0;
+                this.learnedLetters = new Set();
+                this.practiceCount = 0;
+                this.correctCount = 0;
+                this.score = 0;
+                
+                // 손 동작 감지 상태
+                this.handDetected = false;
+                this.lastHandState = false;
+                this.gestureStartTime = 0;
+                this.isGestureActive = false;
+                
+                // 수화 패턴 정의
+                this.signPatterns = this.initializeSignPatterns();
+                
+                this.initializeMediaPipe();
+                this.setupEventListeners();
+            }
+
+            initializeSignPatterns() {
+                return {
+                    // 초성
+                    'ㄱ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지를 펴고 나머지는 구부리세요' },
+                    'ㄴ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴고 나머지는 구부리세요' },
+                    'ㄷ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지만 펴고 나머지는 구부리세요' },
+                    'ㄹ': { thumb: 'extended', index: 'bent', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지와 중지를 펴고 나머지는 구부리세요' },
+                    'ㅁ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '소지만 펴고 나머지는 구부리세요' },
+                    'ㅂ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지, 검지, 중지를 펴고 나머지는 구부리세요' },
+                    'ㅅ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'extended', pinky: 'extended', description: '약지와 소지를 펴고 나머지는 구부리세요' },
+                    'ㅇ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '모든 손가락을 구부리세요 (주먹)' },
+                    'ㅈ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'extended', description: '엄지, 검지, 소지를 펴고 나머지는 구부리세요' },
+                    'ㅊ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'extended', pinky: 'extended', description: '엄지, 약지, 소지를 펴고 나머지는 구부리세요' },
+                    'ㅋ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '소지만 구부리고 나머지는 펴세요' },
+                    'ㅌ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'bent', description: '엄지와 소지만 구부리고 나머지는 펴세요' },
+                    'ㅍ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '엄지와 소지만 펴고 나머지는 구부리세요' },
+                    'ㅎ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지만 펴고 나머지는 구부리세요' },
+                    
+                    // 중성
+                    'ㅏ': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지를 펴고 나머지는 구부리세요' },
+                    'ㅑ': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지, 검지, 중지를 펴고 나머지는 구부리세요' },
+                    'ㅓ': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지만 펴고 나머지는 구부리세요' },
+                    'ㅕ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴고 나머지는 구부리세요' },
+                    'ㅗ': { thumb: 'extended', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지만 펴고 나머지는 구부리세요' },
+                    'ㅛ': { thumb: 'extended', index: 'bent', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지와 중지만 펴고 나머지는 구부리세요' },
+                    'ㅜ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '소지만 펴고 나머지는 구부리세요' },
+                    'ㅠ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'extended', pinky: 'extended', description: '약지와 소지를 펴고 나머지는 구부리세요' },
+                    'ㅡ': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '모든 손가락을 구부리세요 (주먹)' },
+                    'ㅣ': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'extended', pinky: 'extended', description: '엄지만 구부리고 나머지는 펴세요' },
+                    
+                    // 종성 (일부만 예시)
+                    'ㄱ(종)': { thumb: 'extended', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '엄지와 검지를 펴고 나머지는 구부리세요' },
+                    'ㄴ(종)': { thumb: 'bent', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '검지와 중지를 펴고 나머지는 구부리세요' },
+                    'ㄷ(종)': { thumb: 'bent', index: 'extended', middle: 'bent', ring: 'bent', pinky: 'bent', description: '검지만 펴고 나머지는 구부리세요' },
+                    'ㄹ(종)': { thumb: 'extended', index: 'bent', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지와 중지를 펴고 나머지는 구부리세요' },
+                    'ㅁ(종)': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'extended', description: '소지만 펴고 나머지는 구부리세요' },
+                    'ㅂ(종)': { thumb: 'extended', index: 'extended', middle: 'extended', ring: 'bent', pinky: 'bent', description: '엄지, 검지, 중지를 펴고 나머지는 구부리세요' },
+                    'ㅅ(종)': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'extended', pinky: 'extended', description: '약지와 소지를 펴고 나머지는 구부리세요' },
+                    'ㅇ(종)': { thumb: 'bent', index: 'bent', middle: 'bent', ring: 'bent', pinky: 'bent', description: '모든 손가락을 구부리세요 (주먹)' }
+                };
+            }
+
+            async initializeMediaPipe() {
+                this.hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+
+                this.hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.7,
+                    minTrackingConfidence: 0.7
+                });
+
+                this.hands.onResults((results) => {
+                    this.onResults(results);
+                });
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+                this.practiceBtn.addEventListener('click', () => this.togglePracticeMode());
+                this.nameInput.addEventListener('input', () => this.onNameInputChange());
+                this.analyzeBtn.addEventListener('click', () => this.analyzeName());
+            }
+
+            onNameInputChange() {
+                const name = this.nameInput.value.trim();
+                this.analyzeBtn.disabled = !name;
+            }
+
+            analyzeName() {
+                const name = this.nameInput.value.trim();
+                if (!name) return;
+
+                this.userName = name;
+                this.decomposedLetters = this.decomposeKoreanName(name);
+                this.currentLetterIndex = 0;
+                this.learnedLetters.clear();
+                this.practiceCount = 0;
+                this.correctCount = 0;
+                this.score = 0;
+
+                this.displayDecomposedLetters();
+                this.updateCurrentLetter();
+                this.updateProgress();
+                this.updateStats();
+
+                document.getElementById('decomposedSection').classList.remove('hidden');
+                this.practiceBtn.disabled = false;
+            }
+
+            decomposeKoreanName(name) {
+                const letters = [];
+                for (let i = 0; i < name.length; i++) {
+                    const char = name[i];
+                    const code = char.charCodeAt(0);
+                    
+                    if (code >= 0xAC00 && code <= 0xD7A3) { // 한글 완성형
+                        const base = code - 0xAC00;
+                        const initial = Math.floor(base / 588);
+                        const medial = Math.floor((base % 588) / 28);
+                        const final = base % 28;
+                        
+                        const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+                        const medials = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+                        const finals = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+                        
+                        letters.push({
+                            char: char,
+                            initial: initials[initial],
+                            medial: medials[medial],
+                            final: finals[final],
+                            type: 'syllable'
+                        });
+                    } else {
+                        letters.push({
+                            char: char,
+                            initial: char,
+                            medial: '',
+                            final: '',
+                            type: 'other'
+                        });
+                    }
+                }
+                return letters;
+            }
+
+            displayDecomposedLetters() {
+                const container = document.getElementById('decomposedLetters');
+                container.innerHTML = '';
+
+                this.decomposedLetters.forEach((letter, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'letter-card';
+                    card.id = `letter-${index}`;
+                    
+                    if (letter.type === 'syllable') {
+                        card.innerHTML = `
+                            <h4>${letter.char}</h4>
+                            <p>${letter.initial}${letter.medial}${letter.final}</p>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <h4>${letter.char}</h4>
+                            <p>기타</p>
+                        `;
+                    }
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            updateCurrentLetter() {
+                if (this.currentLetterIndex >= this.decomposedLetters.length) {
+                    document.getElementById('currentLetterDisplay').textContent = '완료!';
+                    document.getElementById('currentLetterName').textContent = '모든 자모음을 학습했습니다!';
+                    this.showAchievement('이름 완성');
+                    return;
+                }
+
+                const currentLetter = this.decomposedLetters[this.currentLetterIndex];
+                const letterCards = document.querySelectorAll('.letter-card');
+                
+                // 모든 카드에서 current 클래스 제거
+                letterCards.forEach(card => card.classList.remove('current'));
+                
+                // 현재 카드에 current 클래스 추가
+                if (letterCards[this.currentLetterIndex]) {
+                    letterCards[this.currentLetterIndex].classList.add('current');
+                }
+
+                if (currentLetter.type === 'syllable') {
+                    // 초성부터 학습
+                    const initial = currentLetter.initial;
+                    document.getElementById('currentLetterDisplay').textContent = initial;
+                    document.getElementById('currentLetterName').textContent = `초성: ${initial}`;
+                    this.updateSignInstructions(initial);
+                } else {
+                    document.getElementById('currentLetterDisplay').textContent = currentLetter.char;
+                    document.getElementById('currentLetterName').textContent = '특수문자';
+                    document.getElementById('signInstructions').innerHTML = '이 문자는 수화로 표현할 수 없습니다.';
+                }
+            }
+
+            updateSignInstructions(letter) {
+                const pattern = this.signPatterns[letter];
+                if (pattern) {
+                    document.getElementById('signInstructions').innerHTML = `
+                        <ul>
+                            <li>${pattern.description}</li>
+                            <li>엄지: ${pattern.thumb === 'extended' ? '펴기' : '구부리기'}</li>
+                            <li>검지: ${pattern.index === 'extended' ? '펴기' : '구부리기'}</li>
+                            <li>중지: ${pattern.middle === 'extended' ? '펴기' : '구부리기'}</li>
+                            <li>약지: ${pattern.ring === 'extended' ? '펴기' : '구부리기'}</li>
+                            <li>소지: ${pattern.pinky === 'extended' ? '펴기' : '구부리기'}</li>
+                        </ul>
+                    `;
+                    
+                    // 수화 예시 표시
+                    this.showSignExample(letter);
+                } else {
+                    document.getElementById('signInstructions').innerHTML = '이 자모음의 수화 방법을 찾을 수 없습니다.';
+                    this.hideSignExample();
+                }
+            }
+
+            showSignExample(letter) {
+                const signExample = document.getElementById('signExample');
+                const signImage = document.getElementById('signImage');
+                
+                // 실제 한글 수어 이미지 매핑 (첨부된 이미지 기반)
+                const signImages = {
+                    // 초성 (첫 번째 행 - 연한 파란색 배경)
+                    'ㄱ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4rTwvdGV4dD4KPC9zdmc+',
+                    'ㄴ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4rjwvdGV4dD4KPC9zdmc+',
+                    'ㄷ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4rzwvdGV4dD4KPC9zdmc+',
+                    'ㄹ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4sDwvdGV4dD4KPC9zdmc+',
+                    'ㅁ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4sTwvdGV4dD4KPC9zdmc+',
+                    'ㅂ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4sjwvdGV4dD4KPC9zdmc+',
+                    'ㅅ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4szwvdGV4dD4KPC9zdmc+',
+                    'ㅇ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4tDwvdGV4dD4KPC9zdmc+',
+                    
+                    // 중성 (세 번째 행 - 연한 초록색 배경)
+                    'ㅏ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4vTwvdGV4dD4KPC9zdmc+',
+                    'ㅓ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4vjwvdGV4dD4KPC9zdmc+',
+                    'ㅗ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4vzwvdGV4dD4KPC9zdmc+',
+                    'ㅜ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4wDwvdGV4dD4KPC9zdmc+',
+                    'ㅡ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4wTwvdGV4dD4KPC9zdmc+',
+                    'ㅣ': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRTVGNUZGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4cHgiIGZpbGw9IiMzMzMiPuG4wjwvdGV4dD4KPC9zdmc+'
+                };
+
+                // 실제 이미지가 있으면 사용, 없으면 이모지 사용
+                if (signImages[letter]) {
+                    signImage.innerHTML = `<img src="${signImages[letter]}" alt="${letter} 수화" />`;
+                } else {
+                    // 기본 이모지 매핑
+                    const signEmojis = {
+                        'ㄱ': '👆', 'ㄴ': '✌️', 'ㄷ': '☝️', 'ㄹ': '✋', 'ㅁ': '✊',
+                        'ㅂ': '🖐️', 'ㅅ': '✌️', 'ㅇ': '✊', 'ㅈ': '👌', 'ㅊ': '🤟',
+                        'ㅋ': '🖐️', 'ㅌ': '✌️', 'ㅍ': '👍', 'ㅎ': '👍',
+                        'ㅏ': '👆', 'ㅑ': '✌️', 'ㅓ': '☝️', 'ㅕ': '✌️',
+                        'ㅗ': '👍', 'ㅛ': '✌️', 'ㅜ': '👆', 'ㅠ': '✌️',
+                        'ㅡ': '✊', 'ㅣ': '✋'
+                    };
+                    const emoji = signEmojis[letter] || '🤚';
+                    signImage.innerHTML = `<div class="emoji">${emoji}</div>`;
+                }
+                
+                signExample.classList.remove('hidden');
+                signExample.classList.add('fade-in');
+            }
+
+            hideSignExample() {
+                const signExample = document.getElementById('signExample');
+                signExample.classList.add('hidden');
+            }
+
+            async startCamera() {
+                try {
+                    this.startBtn.disabled = true;
+
+                    this.camera = new Camera(this.video, {
+                        onFrame: async () => {
+                            if (this.hands) {
+                                await this.hands.send({ image: this.video });
+                            }
+                        },
+                        width: 500,
+                        height: 400
+                    });
+
+                    await this.camera.start();
+                    this.isRunning = true;
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                    
+                } catch (error) {
+                    console.error('카메라 시작 오류:', error);
+                    this.startBtn.disabled = false;
+                }
+            }
+
+            stopCamera() {
+                if (this.camera) {
+                    this.camera.stop();
+                    this.camera = null;
+                }
+                
+                this.isRunning = false;
+                this.isPracticing = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.practiceBtn.disabled = true;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.hideFeedback();
+            }
+
+            togglePracticeMode() {
+                this.isPracticing = !this.isPracticing;
+                this.practiceBtn.textContent = this.isPracticing ? '연습 중지' : '연습 모드';
+                this.practiceBtn.style.background = this.isPracticing ? '#e74c3c' : '#3498db';
+            }
+
+            onResults(results) {
+                this.canvas.width = this.video.videoWidth;
+                this.canvas.height = this.video.videoHeight;
+                
+                this.ctx.save();
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    const landmarks = results.multiHandLandmarks[0];
+                    this.drawHands(landmarks);
+                    
+                    // 손 감지 상태 업데이트
+                    this.handDetected = true;
+                    
+                    if (this.isPracticing && this.decomposedLetters.length > 0) {
+                        this.detectGestureCycle(landmarks);
+                    }
+                } else {
+                    this.handDetected = false;
+                }
+                
+                this.ctx.restore();
+            }
+
+            drawHands(landmarks) {
+                // 손가락 연결선 그리기
+                this.drawConnections(landmarks);
+                
+                // 랜드마크 점 그리기
+                landmarks.forEach((point, index) => {
+                    const x = point.x * this.canvas.width;
+                    const y = point.y * this.canvas.height;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    
+                    // 특정 손가락 강조
+                    if (index === 4) { // 엄지 끝
+                        this.ctx.fillStyle = '#e74c3c';
+                    } else if (index === 8) { // 검지 끝
+                        this.ctx.fillStyle = '#f39c12';
+                    } else if (index === 12) { // 중지 끝
+                        this.ctx.fillStyle = '#27ae60';
+                    } else if (index === 16) { // 약지 끝
+                        this.ctx.fillStyle = '#3498db';
+                    } else if (index === 20) { // 소지 끝
+                        this.ctx.fillStyle = '#9b59b6';
+                    } else {
+                        this.ctx.fillStyle = '#34495e';
+                    }
+                    
+                    this.ctx.fill();
+                });
+            }
+
+            drawConnections(landmarks) {
+                const connections = [
+                    [0, 1], [1, 2], [2, 3], [3, 4], // 엄지
+                    [0, 5], [5, 6], [6, 7], [7, 8], // 검지
+                    [0, 9], [9, 10], [10, 11], [11, 12], // 중지
+                    [0, 13], [13, 14], [14, 15], [15, 16], // 약지
+                    [0, 17], [17, 18], [18, 19], [19, 20], // 소지
+                    [5, 9], [9, 13], [13, 17] // 손바닥 연결
+                ];
+
+                this.ctx.strokeStyle = '#2c3e50';
+                this.ctx.lineWidth = 2;
+
+                connections.forEach(([start, end]) => {
+                    const startPoint = landmarks[start];
+                    const endPoint = landmarks[end];
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startPoint.x * this.canvas.width, startPoint.y * this.canvas.height);
+                    this.ctx.lineTo(endPoint.x * this.canvas.width, endPoint.y * this.canvas.height);
+                    this.ctx.stroke();
+                });
+            }
+
+            detectGestureCycle(landmarks) {
+                // 손이 나타났다가 사라지는 것을 감지하여 한 번의 수화 동작으로 카운트
+                const currentTime = Date.now();
+                
+                // 손이 새로 감지된 경우
+                if (this.handDetected && !this.lastHandState) {
+                    this.gestureStartTime = currentTime;
+                    this.isGestureActive = true;
+                    this.updateGestureStatus('손이 감지되었습니다. 수화를 유지해주세요...', 'detected');
+                }
+                
+                // 손이 사라진 경우 (연속으로 500ms 이상 손이 감지되지 않으면)
+                if (!this.handDetected && this.lastHandState && this.isGestureActive) {
+                    const gestureDuration = currentTime - this.gestureStartTime;
+                    
+                    // 최소 300ms 이상 손이 감지되어야 유효한 수화로 인정
+                    if (gestureDuration > 300) {
+                        this.processGesture(landmarks);
+                        this.updateGestureStatus('수화 동작이 완료되었습니다!', 'completed');
+                    } else {
+                        this.updateGestureStatus('수화를 더 오래 유지해주세요', 'too-short');
+                    }
+                    
+                    this.isGestureActive = false;
+                }
+                
+                // 손이 계속 감지되고 있는 경우
+                if (this.handDetected && this.isGestureActive) {
+                    const gestureDuration = currentTime - this.gestureStartTime;
+                    if (gestureDuration > 1000) {
+                        this.updateGestureStatus('수화를 유지하고 있습니다...', 'holding');
+                    }
+                }
+                
+                // 손이 감지되지 않는 경우
+                if (!this.handDetected && !this.isGestureActive) {
+                    this.updateGestureStatus('손을 카메라 앞에 올려주세요', 'waiting');
+                }
+                
+                this.lastHandState = this.handDetected;
+            }
+
+            updateGestureStatus(message, type) {
+                const gestureStatus = document.getElementById('gestureStatus');
+                gestureStatus.textContent = message;
+                gestureStatus.className = `gesture-status ${type}`;
+                gestureStatus.classList.remove('hidden');
+            }
+
+            processGesture(landmarks) {
+                if (this.currentLetterIndex >= this.decomposedLetters.length) return;
+
+                const currentLetter = this.decomposedLetters[this.currentLetterIndex];
+                if (currentLetter.type !== 'syllable') return;
+
+                const targetPattern = this.signPatterns[currentLetter.initial];
+                if (!targetPattern) return;
+
+                const currentPattern = this.analyzeHandPattern(landmarks);
+                const accuracy = this.calculateAccuracy(targetPattern, currentPattern);
+
+                this.practiceCount++; // 한 번의 수화 동작으로 카운트
+
+                if (accuracy > 0.8) {
+                    this.showFeedback('정확합니다! 👍', 'correct');
+                    this.learnedLetters.add(currentLetter.initial);
+                    this.correctCount++;
+                    this.score += 10;
+                    
+                    setTimeout(() => {
+                        this.nextLetter();
+                    }, 1500);
+                } else if (accuracy > 0.6) {
+                    this.showFeedback('거의 맞습니다! 조금 더 연습해보세요', 'practice');
+                } else {
+                    this.showFeedback('다시 시도해보세요', 'incorrect');
+                }
+
+                this.updateStats();
+            }
+
+            analyzeHandPattern(landmarks) {
+                // 손가락 끝점들의 각도와 위치를 분석
+                const thumb = landmarks[4];
+                const index = landmarks[8];
+                const middle = landmarks[12];
+                const ring = landmarks[16];
+                const pinky = landmarks[20];
+                const wrist = landmarks[0];
+
+                return {
+                    thumb: this.getFingerState(thumb, wrist),
+                    index: this.getFingerState(index, wrist),
+                    middle: this.getFingerState(middle, wrist),
+                    ring: this.getFingerState(ring, wrist),
+                    pinky: this.getFingerState(pinky, wrist)
+                };
+            }
+
+            getFingerState(fingerTip, wrist) {
+                const distance = Math.sqrt(
+                    Math.pow(fingerTip.x - wrist.x, 2) + 
+                    Math.pow(fingerTip.y - wrist.y, 2)
+                );
+                
+                // 거리 기반으로 펼쳐진 상태 판단 (임계값 조정 필요)
+                return distance > 0.15 ? 'extended' : 'bent';
+            }
+
+            calculateAccuracy(targetPattern, currentPattern) {
+                let matches = 0;
+                let total = 0;
+
+                for (const finger in targetPattern) {
+                    if (finger === 'description') continue;
+                    total++;
+                    if (targetPattern[finger] === currentPattern[finger]) {
+                        matches++;
+                    }
+                }
+
+                return matches / total;
+            }
+
+            showFeedback(message, type) {
+                const feedback = document.getElementById('feedback');
+                feedback.textContent = message;
+                feedback.className = `feedback ${type}`;
+                feedback.classList.remove('hidden');
+                feedback.classList.add('fade-in');
+
+                setTimeout(() => {
+                    feedback.classList.remove('fade-in');
+                }, 500);
+            }
+
+            hideFeedback() {
+                document.getElementById('feedback').classList.add('hidden');
+            }
+
+            nextLetter() {
+                this.currentLetterIndex++;
+                this.updateCurrentLetter();
+                this.updateProgress();
+                this.hideFeedback();
+            }
+
+            updateProgress() {
+                const progress = (this.currentLetterIndex / this.decomposedLetters.length) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                document.getElementById('progressText').textContent = `${Math.round(progress)}% 완료`;
+            }
+
+            updateStats() {
+                document.getElementById('learnedCount').textContent = this.learnedLetters.size;
+                
+                const accuracy = this.practiceCount > 0 ? (this.correctCount / this.practiceCount) * 100 : 0;
+                document.getElementById('accuracy').textContent = `${Math.round(accuracy)}%`;
+                
+                document.getElementById('practiceCount').textContent = this.practiceCount;
+                document.getElementById('score').textContent = this.score;
+
+                // 성취 배지 업데이트
+                this.updateBadges();
+            }
+
+            updateBadges() {
+                const badges = document.querySelectorAll('.badge');
+                
+                if (this.practiceCount > 0) {
+                    badges[0].classList.remove('locked');
+                }
+                
+                if (this.learnedLetters.size >= 5) {
+                    badges[1].classList.remove('locked');
+                }
+                
+                if (this.currentLetterIndex >= this.decomposedLetters.length) {
+                    badges[2].classList.remove('locked');
+                }
+                
+                if (this.score >= 100) {
+                    badges[3].classList.remove('locked');
+                }
+            }
+
+            showAchievement(badgeName) {
+                this.showFeedback(`🏆 ${badgeName} 배지를 획득했습니다!`, 'correct');
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            new KoreanSignLanguageLearner();
+        });
+    </script>
+</body>
+</html>
